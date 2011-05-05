@@ -73,20 +73,6 @@ def M_ges(ambient, layerlist, substrate, polarisation):
     M = M * M_sub( phi_n, n_new, polarisation )
     return M
 
-def _test_M_ges(ambient, layerlist, substrate, polarisation):
-    M = M_amb( ambient[0], ambient[1], polarisation )               # starting with vacuum
-    phi_n, n_old, l_0 = ambient
-    for layer in layerlist:                             # going through the finite-thickness layers
-        d, n_new = layer
-        l = l_0 / n_new
-        phi_n = refracted(phi_n, n_old, n_new)
-        M = M * M_lay(d, n_new, phi_n, l, polarisation)
-        n_old = n_new
-    n_new = substrate[0]                                   # last step: infintie-half-space substrate
-    phi_n = refracted(phi_n, n_old, n_new)
-    M = M * M_sub( phi_n, n_new, polarisation )
-    return M
-
 # Fresnel-reflectivity from M_ges
 r = lambda M: M[ 1, 0 ] / M[ 0, 0 ]
 
