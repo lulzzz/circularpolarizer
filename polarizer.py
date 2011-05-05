@@ -2,6 +2,8 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.constants import e, hbar
+from os import getcwd
 
 # {{{ definitions
 
@@ -16,33 +18,72 @@ M = lambda phi,delta,rp,rs: (rp**2+rs**2)/2*np.matrix([
 S = lambda alpha: np.array([1, np.cos(2*alpha), np.sin(2*alpha), 0])
 
 # Kramers-Kronig-Relation: 
-# calculate the imaginary part of reflectivity (=phaseshift) at angle phi
-kk_phase = lambda phi, angles, refl: \
-        -2/np.pi*sum([phi*refl[i]/(angle**2-phi**2) for i,angle in enumerate(angles) ])
+# calculate the imaginary part of reflectivity (=phaseshift) at given circ.frequency
+# omega: given frequency
+# _omega: list of all frequencies to be 'integrated' (=sum) over
+# _refl: corresponding list of reflectivities
+# kk_phase = lambda omega, _omega, _refl: \
+        # omega/np.pi * sum([ np.log(_refl[i]/_refl[np.where(_omega == omega)])/(om**2 - omega**2) \
+        # for i, om in enumerate(_omega) if om!=omega ])
+
+# convert Energy(eV) -> ω
+eV2omega = lambda eV: eV*e/hbar
 
 # import dat-files from CXRO-bilayer-refl-calculator, returns angles, reflectivities
-def importdat(filename):        
-    return np.genfromtxt(filename, skip_header=3, usecols=[0,1], unpack=True)
+def importindex(filename):        
+    return np.genfromtxt(filename, skip_header=2, unpack=True)
 
+# put it all together...
+# def phaseshift(filename, energy):
+    # _energy, reflectivity = importdat(filename)
+    # phaseshift = kk_phase(eV2omega(energy), eV2omega(_energy), reflectivity)
+    # return phaseshift
+
+# refl_i = complex reflection coeff. ~ r*exp(iφ)
+refl_s = lambda eps, th: eps*np.sin(th) - np.sqrt((eps-np.cos(th)**2))\
+        /(eps*np.sin(th) + np.sqrt(eps-np.cos(th)**2))
+
+refl_p = lambda eps, th: np.sin(th) - np.sqrt((eps-np.cos(th)**2))\
+        /(np.sin(th) + np.sqrt(eps-np.cos(th)**2))
+
+# get phase φ from complex number C with abs(C)=r: C=r*exp(іφ)
+cplx_phase = lambda cplx: np.arctan(cplx.real/cplx.imag)
+
+# convert complex refractive index N=n+ik to complex dielectric constant
+n2eps = lambda n, k: np.complex(n**2 - k**2, 2*n*k)
+
+# closest match-finder
+closest = lambda liste, match: min(list(liste), key = lambda i: abs(i-match))
 # }}}
 
-angles, reflectivities_p = importdat('xray_p.dat')
-phases_p = np.array([kk_phase(np.deg2rad(phi), angles, reflectivities_p) for phi in angles])
+startdir = '/home/dscran/Documents/promotion/circularpolarizer'
+# phasediff = [ phaseshift('%s/data/deg%02d_p.dat' % (startdir, angle), energy) \
+        # - phaseshift('%s/data/deg%02d_s.dat' % (startdir, angle), energy) for angle in angles ]
 
-angles, reflectivities_s = importdat('xray_s.dat')
-phases_s = np.array([kk_phase(np.deg2rad(phi), angles, reflectivities_s) for phi in angles])
+target_energy = 60              #eV
 
-delta = phases_p-phases_s
+# the refractive index data files contain [E(eV), δ, β] with n=1-δ-iβ
+energy, delta, beta = importindex(startdir + '/data/index_B4C.dat')
+
+delta = 1 - delta[ energy == closest(energy, target_energy) ]
+beta = -beta[ energy == closest(energy, target_energy) ]
+
+eps = n2eps( delta, beta )
+
+theta = np.arange(0, np.pi/2, .01)
+
+phi_s = np.array( [ cplx_phase( refl_s(eps, th) ) for th in theta ] )
+phi_p = np.array( [ cplx_phase( refl_p(eps, th) ) for th in theta ] )
+
+D_phi = phi_s - phi_p
 
 # {{{ Plotten
 
 fig = plt.figure()
-ax = fig.add_subplot(211)
-plt.plot(angles, reflectivities_p, 'r-')
-plt.plot(angles, reflectivities_s, 'b-')
-ax = fig.add_subplot(212)
-plt.plot(angles, 4*np.rad2deg(delta), 'g-')
-fig.savefig('phase.pdf')
+ax = fig.add_subplot(111)
+plt.plot(np.rad2deg(theta), np.rad2deg(D_phi), 'g-')
+# plt.plot(angles, reflectivities_s, 'b-')
+fig.savefig(startdir+'/phase.pdf')
 
 # }}}
 
