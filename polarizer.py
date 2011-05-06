@@ -77,7 +77,13 @@ def M_ges(ambient, layerlist, substrate, polarisation):
 r = lambda M: M[ 1, 0 ] / M[ 0, 0 ]
 
 # phase of complex number
-cplx_phase = lambda c: np.arctan( c.imag / c.real )
+def cplx_phase(c):
+    if c.real > 0:
+        return np.arctan( c.imag / c.real )
+    if c.real < 0 and c.imag >= 0:
+        return np.arctan( c.imag / c.real ) + np.pi
+    if c.real < 0 and c.imag < 0:
+        return np.arctan( c.imag / c.real ) - np.pi
 
 # }}}
 
@@ -105,11 +111,6 @@ R_s = [ abs(r)**2 for r in r_s ]
 R_p = [ abs(r)**2 for r in r_p ]
 phase_s = [ cplx_phase(r) for r in r_s ]
 phase_p = [ cplx_phase(r) for r in r_p ]
-
-# THIS IS A QUICK-AND-DIRTY HACK!
-# the phase jumps around...find out why! otherwhise results seem correct 
-phase_s = [ p if i<59 else p + np.pi for i,p in enumerate(phase_s) ]
-phase_p = [ p if p>0 else p + np.pi for p in phase_p ]
 
 phase_diff = np.array( [ phase_s[i] - p_p for i, p_p in enumerate(phase_p) ] )
 
