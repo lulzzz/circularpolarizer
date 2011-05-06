@@ -138,7 +138,9 @@ ax2.set_ylabel( u'phase shift [°]' )
 # plt.plot( np.rad2deg( np.pi/2-angles ), -np.rad2deg( phase_p ), 'r.', label='phase_p' )
 plt.plot( np.rad2deg( np.pi/2-angles ), -np.rad2deg( phase_diff ), 'g-', label='phase_d' )
 
-ax2.set_ylim( ymax=200 )
+ax2.set_ylim( ymax=190 )
+ax2.set_yticks( np.arange(0,181,20) )
+
 # plt.legend()
 
 fig.savefig('/home/dscran/Documents/promotion/circularpolarizer/phase.pdf')
