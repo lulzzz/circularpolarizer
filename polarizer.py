@@ -42,7 +42,7 @@ def M_lay(d, n, phi_n, l, polarisation):
     b = b_factor( d, n, phi_n, l )
     if polarisation == 'p':
         M = np.matrix( \
-                [ [ np.cos(b), -ii * np.cos(phi_n) * np.sin(b) / n ],\
+                [ [ np.cos(b), ii * np.cos(phi_n) * np.sin(b) / n ],\
                 [ ii * n * np.sin(b) / np.cos(phi_n), np.cos(b) ] ] )
         return M
     elif polarisation == 's':
@@ -81,6 +81,10 @@ cplx_phase = lambda c: np.arctan( c.imag / c.real )
 
 # }}}
 
+# closest-match finder
+
+closest = lambda _list, match: min(_list, key = lambda x: abs(x-match) )
+
 # n_B4C @ 60eV
 n_B4C = np.complex( 1-0.0850091055, -0.018499583 )
 # n_Mo @ 60eV
@@ -93,18 +97,49 @@ layerlist = [ [ 3e-9, n_B4C ], [ 100e-9, n_Mo ] ]
 substrate = [ n_SiO2 ]
 l = eV2lambda(60)
 
-angles = np.arange( 0.01, np.pi/2, .05 )
+angles = np.arange( 0, np.pi/2, .02 )
 
-# shift = [ cplx_phase( r( M_ges( [a, n_vac, l], layerlist, substrate, 's' ) ) ) \
-        # - cplx_phase( r( M_ges( [a, n_vac, l], layerlist, substrate, 'p' ) ) ) for a in angles ]
+r_p = [ r( M_ges( [a, n_vac, l], layerlist, substrate, 'p' ) ) for a in angles ] 
+r_s = [ r( M_ges( [a, n_vac, l], layerlist, substrate, 's' ) ) for a in angles ]
+R_s = [ abs(r)**2 for r in r_s ]
+R_p = [ abs(r)**2 for r in r_p ]
+phase_s = [ cplx_phase(r) for r in r_s ]
+phase_p = [ cplx_phase(r) for r in r_p ]
 
-r_s = [ r( M_ges( [a, n_vac, l], layerlist, substrate, 's' ) ).real for a in angles ]
-r_p = [ r( M_ges( [a, n_vac, l], layerlist, substrate, 'p' ) ).real for a in angles ] 
+# THIS IS A QUICK-AND-DIRTY HACK!
+# the phase jumps around...find out why! otherwhise results seem correct 
+phase_s = [ p if i<59 else p + np.pi for i,p in enumerate(phase_s) ]
+phase_p = [ p if p>0 else p + np.pi for p in phase_p ]
+
+phase_diff = np.array( [ phase_s[i] - p_p for i, p_p in enumerate(phase_p) ] )
+
+# for comparison: data from CXRO-homepage
+deg, cxro_s = np.genfromtxt('/home/dscran/Documents/promotion/circularpolarizer/data/E_60eV_s.dat', unpack=True, skip_header=2, usecols=[0,1])
+deg, cxro_p = np.genfromtxt('/home/dscran/Documents/promotion/circularpolarizer/data/E_60eV_p.dat', unpack=True, skip_header=2, usecols=[0,1])
 
 fig = plt.figure()
-ax = fig.add_subplot(111)
-plt.plot(np.pi/2-angles, r_s, 'r-', label='s')
-plt.plot(np.pi/2-angles, r_p, 'g-', label='p')
-plt.legend()
+ax1 = fig.add_subplot( 111 )
+ax1.set_xlabel( u'grazing angle [°]' )
+ax1.set_ylabel( u'reflectivity' )
+
+plt.plot( np.rad2deg( np.pi/2-angles ), R_s, 'b-', label='s', lw=2 )
+plt.plot( deg, cxro_s, 'bD', label='CXRO' )
+
+plt.plot( np.rad2deg( np.pi/2-angles ), R_p, 'r-', label='p', lw=2 )
+plt.plot( deg, cxro_p, 'rD', label='CXRO' )
+
+plt.legend( loc='upper center' )
+
+ax2 = plt.twinx()
+ax2.set_ylabel( u'phase shift [°]' )
+
+# plt.plot( np.rad2deg( np.pi/2-angles ), -np.rad2deg( phase_s ), 'b.', label='phase_s' )
+# plt.plot( np.rad2deg( np.pi/2-angles ), -np.rad2deg( phase_p ), 'r.', label='phase_p' )
+plt.plot( np.rad2deg( np.pi/2-angles ), -np.rad2deg( phase_diff ), 'g-', label='phase_d' )
+
+ax2.set_ylim( ymax=200 )
+# plt.legend()
+
 fig.savefig('/home/dscran/Documents/promotion/circularpolarizer/phase.pdf')
+
 # vim: foldmethod=marker
