@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.constants import e,c,h
 
+#todo: cleanup, classes etc.
+
 # calculate the complex refraction coefficient (Fresnel) for a multilayer-structure
 # matrices are from:
 # Harland G. Tompkins, Eugene A. Irene: 'Handbook of ellipsometry' 
@@ -17,6 +19,12 @@ from scipy.constants import e,c,h
 # layerlist = [ [ d_1, n_1, l_1 ], ... , [ d_N, n_N, l_N ] ]
 # substrate = [ n ]
 
+# {{{ oo stuff comes here
+
+class structure():
+
+
+# }}}
 # {{{ definitions
 
 lambda2eV = lambda l: h * c / ( e * l )
