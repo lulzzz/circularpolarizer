@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.constants import e,c,h
 
 #todo: cleanup, classes etc.
@@ -21,28 +20,65 @@ from scipy.constants import e,c,h
 
 # {{{ oo stuff comes here
 
-class structure():
+class Layer(object):
+    def __init__(self, name, index = np.complex(1,0), thickness = -1 ):
+        self.name = name
+        self.index = index
+        self.thickness = thickness
+
+    def vis( self, textwidth = 35 ):
+        text = '%s: N=%1.2f%+1.2fi d=%dnm\n\n' % ( self.name, self.index.real, self.index.imag, self.thickness*1e9 )
+        return textwidth * '_' + '\n' + ( textwidth - len(text) ) / 2 * ' ' + text
+
+# class for the whole structure
+class Structure(object):
+    def __init__( self, stack ):
+        self.stack = stack
+
+    def show(self):
+        # generate simple structure visualization
+        text = '\n\n  Ambient: %s\n  N=%1.2f%+1.2fi\n' % ( self.stack[0].name, self.stack[0].index.real, self.stack[0].index.imag )
+        for layer in self.stack[1:-1]:
+            text += layer.vis(35)
+        text += 35 * '_' + '\n' + \
+                '  substrate: %s\n  N=%1.2f %+1.2fi\n' % ( self.stack[-1].name, self.stack[-1].index.real, self.stack[-1].index.imag )
+        print text
 
 
-# }}}
-# {{{ definitions
+    def fresnel( self, angle, energy, polarisation ):
+        M = M_ges( self.stack, angle, energy, polarisation )
+        return r(M)
 
-lambda2eV = lambda l: h * c / ( e * l )
-eV2lambda = lambda E: h * c / ( e * E )
+# {{{ old functions
+
+# closest-match finder
+closest = lambda _list, match: min(_list, key = lambda x: abs(x-match) )
+
+nm2eV = lambda l: h * c / ( e * l )
+eV2nm = lambda E: h * c / ( e * E )
+
+# phase of complex number
+def cplx_phase(c):
+    if c.real > 0:
+        return np.arctan( c.imag / c.real )
+    if c.real < 0 and c.imag >= 0:
+        return np.arctan( c.imag / c.real ) + np.pi
+    if c.real < 0 and c.imag < 0:
+        return np.arctan( c.imag / c.real ) - np.pi
 
 ii = np.complex(0, 1)
 
-b_factor = lambda d, n, phi, l: 2 * np.pi * d * n * np.cos(phi) / l
+b_factor = lambda d, n, angle, l: 2 * np.pi * d * n * np.cos(angle) / l
 
 refracted = lambda phi, n1, n2: np.arcsin( np.sin(phi) * n1/ n2 )
 
 # matrix for ambient layer, p- and s-polarization
 # angle of incidence phi is measured from surface-normal!
-def M_amb(phi, n, polarisation):
+def M_amb(angle, n, polarisation):
     if polarisation == 'p':
-        return .5 * np.matrix( [ [ 1, np.cos(phi)/n ], [ -1, np.cos(phi)/n ] ] )
+        return .5 * np.matrix( [ [ 1, np.cos(angle)/n ], [ -1, np.cos(angle)/n ] ] )
     elif polarisation == 's':
-        return .5 * np.matrix( [ [ 1, 1 / ( np.cos(phi) * n ) ], [ 1, -1 / ( np.cos(phi) * n ) ] ] )
+        return .5 * np.matrix( [ [ 1, 1 / ( np.cos(angle) * n ) ], [ 1, -1 / ( np.cos(angle) * n ) ] ] )
     
 # same for arbitrary layer of thickness d, index n, angle of incidence phi (REFRACTED!)
 # at wavelength l
@@ -67,90 +103,62 @@ def M_sub(phi_n, n, polarisation):
         return np.matrix( [ [ 1 / ( np.cos(phi_n) * n ), 0 ], [ 1, 0 ] ] )
 
 # M_ges = M_amb * M_lay1 * ... * M_layN * M_sub
-def M_ges(ambient, layerlist, substrate, polarisation):
-    M = M_amb( ambient[0], ambient[1], polarisation )               # starting with vacuum
-    phi_n, n_old, l_0 = ambient
-    for layer in layerlist:                             # going through the finite-thickness layers
-        d, n_new = layer
+def M_ges(stack, angle, energy, polarisation):
+    ambient = stack[0]
+    substrate = stack[-1]
+    M = M_amb( angle, ambient.index, polarisation )               # starting with vacuum
+    phi_n = angle
+    l_0 = eV2nm(energy)
+    n_old = ambient.index
+    for layer in stack[1:-1]:                             # going through the finite-thickness layers
+        d, n_new = layer.thickness, layer.index
         l = l_0 / n_new
         phi_n = refracted(phi_n, n_old, n_new)
-        M = M * M_lay(d, n_new, phi_n, l, polarisation)
+        M = M * M_lay(layer.thickness, n_new, phi_n, l, polarisation)
         n_old = n_new
-    n_new = substrate[0]                                   # last step: infintie-half-space substrate
+    n_new = substrate.index                                   # last step: infintie-half-space substrate
     phi_n = refracted(phi_n, n_old, n_new)
     M = M * M_sub( phi_n, n_new, polarisation )
     return M
 
 # Fresnel-reflectivity from M_ges
 r = lambda M: M[ 1, 0 ] / M[ 0, 0 ]
-
-# phase of complex number
-def cplx_phase(c):
-    if c.real > 0:
-        return np.arctan( c.imag / c.real )
-    if c.real < 0 and c.imag >= 0:
-        return np.arctan( c.imag / c.real ) + np.pi
-    if c.real < 0 and c.imag < 0:
-        return np.arctan( c.imag / c.real ) - np.pi
+# }}}
 
 # }}}
 
-# closest-match finder
-
-closest = lambda _list, match: min(_list, key = lambda x: abs(x-match) )
-
-# n_B4C @ 60eV
-n_B4C = np.complex( 1-0.0850091055, -0.018499583 )
-# n_Mo @ 60eV
-n_Mo = np.complex( 1-0.2158086, -0.12803553 )
-
-n_vac = np.complex( 1, 0 )
-n_SiO2 = np.complex( 1-0.0544616096, -0.0341861285 )
-
-layerlist = [ [ 3e-9, n_B4C ], [ 100e-9, n_Mo ] ]
-substrate = [ n_SiO2 ]
-l = eV2lambda(60)
-
-angles = np.arange( 0, np.pi/2, .02 )
-
-r_p = [ r( M_ges( [a, n_vac, l], layerlist, substrate, 'p' ) ) for a in angles ] 
-r_s = [ r( M_ges( [a, n_vac, l], layerlist, substrate, 's' ) ) for a in angles ]
-R_s = [ abs(r)**2 for r in r_s ]
-R_p = [ abs(r)**2 for r in r_p ]
-phase_s = [ cplx_phase(r) for r in r_s ]
-phase_p = [ cplx_phase(r) for r in r_p ]
-
-phase_diff = np.array( [ phase_s[i] - p_p for i, p_p in enumerate(phase_p) ] )
+# phase_diff = np.array( [ phase_s[i] - p_p for i, p_p in enumerate(phase_p) ] )
 
 # for comparison: data from CXRO-homepage
-deg, cxro_s = np.genfromtxt('/home/dscran/Documents/promotion/circularpolarizer/data/E_60eV_s.dat', unpack=True, skip_header=2, usecols=[0,1])
-deg, cxro_p = np.genfromtxt('/home/dscran/Documents/promotion/circularpolarizer/data/E_60eV_p.dat', unpack=True, skip_header=2, usecols=[0,1])
+# deg, cxro_s = np.genfromtxt('/home/dscran/Documents/promotion/circularpolarizer/data/E_60eV_s.dat', unpack=True, skip_header=2, usecols=[0,1])
+# deg, cxro_p = np.genfromtxt('/home/dscran/Documents/promotion/circularpolarizer/data/E_60eV_p.dat', unpack=True, skip_header=2, usecols=[0,1])
 
-fig = plt.figure()
-ax1 = fig.add_subplot( 111 )
-ax1.set_xlabel( u'grazing angle [°]' )
-ax1.set_ylabel( u'reflectivity' )
+# fig = plt.figure()
+# ax1 = fig.add_subplot( 111 )
+# ax1.set_xlabel( u'grazing angle [°]' )
+# ax1.set_ylabel( u'reflectivity' )
 
-plt.plot( np.rad2deg( np.pi/2-angles ), R_s, 'b-', label='s', lw=2 )
-plt.plot( deg, cxro_s, 'bD', label='CXRO' )
+# plt.plot( np.rad2deg( np.pi/2-angles ), R_s, 'b-', label='s', lw=2 )
+# plt.plot( deg, cxro_s, 'bD', label='CXRO' )
 
-plt.plot( np.rad2deg( np.pi/2-angles ), R_p, 'r-', label='p', lw=2 )
-plt.plot( deg, cxro_p, 'rD', label='CXRO' )
+# plt.plot( np.rad2deg( np.pi/2-angles ), R_p, 'r-', label='p', lw=2 )
+# plt.plot( deg, cxro_p, 'rD', label='CXRO' )
 
-plt.legend( loc='upper center' )
-
-ax2 = plt.twinx()
-ax2.set_ylabel( u'phase shift [°]' )
+# plt.legend( loc='upper center' )
+# 
+# ax2 = plt.twinx()
+# ax2.set_ylabel( u'phase shift [°]' )
 
 # plt.plot( np.rad2deg( np.pi/2-angles ), -np.rad2deg( phase_s ), 'b.', label='phase_s' )
 # plt.plot( np.rad2deg( np.pi/2-angles ), -np.rad2deg( phase_p ), 'r.', label='phase_p' )
-plt.plot( np.rad2deg( np.pi/2-angles ), -np.rad2deg( phase_diff ), 'g-', label='phase_d' )
+# plt.plot( np.rad2deg( np.pi/2-angles ), -np.rad2deg( phase_diff ), 'g-', label='phase shift' )
+# plt.legend( loc = 'center right' )
 
-ax2.set_ylim( ymax=190 )
-ax2.set_yticks( np.arange(0,181,20) )
+# ax2.set_ylim( ymax=190 )
+# ax2.set_yticks( np.arange(0,181,20) )
 
 # plt.legend()
 
-fig.savefig('/home/dscran/Documents/promotion/circularpolarizer/phase.pdf')
+# fig.savefig('/home/dscran/Documents/promotion/circularpolarizer/phase.pdf')
 
 # vim: foldmethod=marker
