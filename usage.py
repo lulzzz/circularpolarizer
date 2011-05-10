@@ -35,7 +35,7 @@ R_s = [ abs(r)**2 for r in r_s ]
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
-plt.plot( np.pi/2 - angles, R_s )
+plt.plot( np.rad2deg(np.pi/2 - angles), R_s )
 fig.savefig('test.pdf')
 
 # vim: folmethod=marker

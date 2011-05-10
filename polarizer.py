@@ -45,6 +45,7 @@ class Structure(object):
         M = self.__M_ges( self.stack, angle, energy, polarisation )
         return self.__r(M)
 
+    # {{{ helpers for reflectivity calculation
     # phase factor from Fresnel equations
     def __b_factor(self, d, n, angle, l):
         return 2 * np.pi * d * n * np.cos(angle) / l
@@ -106,6 +107,7 @@ class Structure(object):
         angle = self.__refracted(angle, n_old, n_new)
         M = M * self.__M_sub( angle, n_new, polarisation )
         return M
+    # }}}
     # }}}
 # }}}
 
