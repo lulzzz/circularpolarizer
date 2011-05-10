@@ -3,7 +3,6 @@
 import numpy as np
 from scipy.constants import e,c,h
 
-ii = np.complex(0, 1)
 
 # {{{ single layer-class
 class Layer(object):
@@ -20,12 +19,14 @@ class Layer(object):
 
 # {{{ class for whole structure
 class Structure(object):
+    # convenient, isn't it?
+    ii = np.complex(0, 1)
+
     def __init__( self, stack ):
         self.stack = stack
 
     # {{{ generate simple visualization of compound structure
     def show(self):
-        # generate simple structure visualization
         text = '\n\n    ambient: %s\n    N=%1.2f%+1.2fi\n' \
                 % ( self.stack[0].name, self.stack[0].index.real, self.stack[0].index.imag )
         text += '   ' + 45 * '_' + '\n'
@@ -75,13 +76,13 @@ class Structure(object):
         b = self.__b_factor( d, n, angle_n, l )
         if polarisation == 'p':
             M = np.matrix( \
-                    [ [ np.cos(b), ii * np.cos(angle_n) * np.sin(b) / n ],\
-                    [ ii * n * np.sin(b) / np.cos(angle_n), np.cos(b) ] ] )
+                    [ [ np.cos(b), self.ii * np.cos(angle_n) * np.sin(b) / n ],\
+                    [ self.ii * n * np.sin(b) / np.cos(angle_n), np.cos(b) ] ] )
             return M
         elif polarisation == 's':
             M = np.matrix( \
-                    [ [ np.cos(b), ii * np.sin(b) / ( n * np.cos(angle_n) ) ],\
-                    [ ii * n * np.sin(b) * np.cos(angle_n), np.cos(b) ] ] )
+                    [ [ np.cos(b), self.ii * np.sin(b) / ( n * np.cos(angle_n) ) ],\
+                    [ self.ii * n * np.sin(b) * np.cos(angle_n), np.cos(b) ] ] )
             return M
 
     # matrices for an infinite half-space ( =substrate )
