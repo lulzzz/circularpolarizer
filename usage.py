@@ -57,6 +57,6 @@ ax2.set_ylabel( u'phase shift (°)' )
 l3 = plt.plot( np.rad2deg(np.pi/2 - angles), np.rad2deg(phase_p - phase_s), 'g-', lw=2 )
 
 plt.legend( [ l1, l2, l3 ], [ 'R_s', 'R_p', 'phase shift' ], loc='center right' )
-fig.savefig('/home/dscran/Documents/promotion/circularpolarizer/test.pdf')
+fig.savefig('/home/dscran/documents/promotion/circularpolarizer/test.pdf')
 
 # vim: foldmethod=marker

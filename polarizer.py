@@ -13,7 +13,8 @@ class Layer(object):
 
     def _vis(self):
         tw = 45             # textwidth
-        text = '%s: N=%1.2f%+1.2fi d=%dnm' % ( self.name, self.index.real, self.index.imag, self.thickness*1e9 )
+        text = '%s: N=%1.2f%+1.2fi d=%dnm' \
+		% ( self.name, self.index.real, self.index.imag, self.thickness*1e9 )
         return '  |    ' + text + (tw - len(text) - 4) * ' ' + '|\n  |' + tw * '_' + '|\n'
 # }}}
 
@@ -37,7 +38,7 @@ class Structure(object):
                 '|\n  |    N=%1.2f %+1.2fi' % ( self.stack[-1].index.real, self.stack[-1].index.imag ) +\
                 (len( str(self.stack[-1].index) ) ) * ' ' + '|\n' +\
                 '  |' + 45 * ' ' + '|\n\n\n'
-        print text
+        # print text
         return text
     # }}}
 
