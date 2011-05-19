@@ -70,14 +70,15 @@ def crunch(names, thickness, parameter):
 
 mnames = [['B4C', 'Mo'], ['Rh'], ['Ru'], ['TiO', 'Ti']]
 thickness = [
-        [np.arange(3, 10, 2), np.arange(10, 100, 10)],
+        [np.arange(3, 10, 4), np.arange(10, 100, 10)],
         [np.arange(10, 100, 10)],
         [np.arange(10, 100, 10)],
-        [np.arange(3, 10, 2), np.arange(10, 100, 10)]]
-energy, angles = 60, np.arange(0, np.pi, .01)
-for nr, names in enumerate(mnames):
-    r = crunch(names, thickness[nr], [energy, angles])
-    fname = ''
-    for name in names:
-        fname += name + '-'
-    np.savetxt(fname.rstrip('-') + '_E=%deV.txt' % energy, r)
+        [np.arange(3, 10, 4), np.arange(10, 100, 10)]]
+for E in np.arange(55, 65, .1):
+    energy, angles = E, np.arange(0, np.pi, .01)
+    for nr, names in enumerate(mnames):
+        r = crunch(names, thickness[nr], [energy, angles])
+        fname = ''
+        for name in names:
+            fname += name + '-'
+        np.savetxt('data/' + fname.rstrip('-') + '_E=%1.1feV.txt' % energy, r)
