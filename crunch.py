@@ -60,6 +60,7 @@ def crunch(names, thickness, parameter):
             mirror.append(pol.Layer(l[0], l[1], 1e-9 * l[2]))
         mirror.append(sub)
         mirror = pol.Structure(mirror)
+        print mirror.show()
         r_s = np.array([mirror.fresnel(a, energy, 's') for a in angles])
         r_p = np.array([mirror.fresnel(a, energy, 'p') for a in angles])
         r += [comb + [match_refl_to_phase(r_s, r_p)]]

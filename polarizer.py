@@ -6,15 +6,15 @@ from scipy.constants import e, c, h
 
 # {{{ single layer-class
 class Layer(object):
-    def __init__(self, name, index=np.complex(1, 0), thickness=-1):
+    def __init__(self, name, index=np.complex(1, 0), d=-1):
         self.name = name
         self.index = index
-        self.thickness = thickness
+        self.d = d
 
     def _vis(self):
-        text = '%s: N=%1.2f%+1.2fi d=%dnm' \
-                % (self.name, self.index.real, self.index.imag,
-                        self.thickness * 1e9)
+        text_d = '' if self.d == -1 else ', d=%dnm' % (self.d * 1e9)
+        text = '%s: N=%1.2f%+1.2fi%s' \
+                % (self.name, self.index.real, self.index.imag, text_d)
         return text
 # }}}
 
@@ -97,10 +97,10 @@ class Structure(object):
         n_old = ambient.index
         # going through the finite-thickness layers
         for layer in self.stack[1:-1]:
-            d, n_new = layer.thickness, layer.index
+            d, n_new = layer.d, layer.index
             l = l_0 / n_new
             angle = self.__refracted(angle, n_old, n_new)
-            M = M * self.__M_lay(layer.thickness, n_new,
+            M = M * self.__M_lay(layer.d, n_new,
                     angle, l, polarisation)
             n_old = n_new
         # last step: infintie-half-space substrate
