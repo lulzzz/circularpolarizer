@@ -2,8 +2,6 @@
 
 import numpy as np
 import polarizer as pol
-from scipy.constants import h, c, e
-import itertools
 
 
 # imaginary i
@@ -74,7 +72,7 @@ thickness = [
         [np.arange(10, 100, 10)],
         [np.arange(10, 100, 10)],
         [np.arange(3, 10, 4), np.arange(10, 100, 10)]]
-for E in np.arange(55, 65, .1):
+for E in np.arange(55, 65, 10):
     energy, angles = E, np.arange(0, np.pi, .01)
     for nr, names in enumerate(mnames):
         r = crunch(names, thickness[nr], [energy, angles])
