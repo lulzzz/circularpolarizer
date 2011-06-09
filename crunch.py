@@ -68,13 +68,14 @@ def crunch(names, thickness, parameter):
 
 
 mnames = [['B4C', 'Mo'], ['Rh'], ['Ru'], ['TiO', 'Ti']]
+# mnames = [['W'], ['Pd']]
 thickness = [
-        [np.arange(3, 10, 4), np.arange(10, 100, 10)],
-        [np.arange(10, 100, 10)],
-        [np.arange(10, 100, 10)],
-        [np.arange(3, 10, 4), np.arange(10, 100, 10)]]
-for E in np.arange(55, 65, 10):
-    energy, angles = E, np.arange(0, np.pi, .01)
+        [np.arange(2, 10, 40), np.arange(10, 100, 100)],
+        [np.arange(10, 100, 100)],
+        [np.arange(10, 100, 100)],
+        [np.arange(2, 10, 40), np.arange(10, 100, 100)]]
+for energy in np.arange(55, 65, .1):
+    angles = np.arange(0, np.pi, .01)
     for nr, names in enumerate(mnames):
         r = crunch(names, thickness[nr], [energy, angles])
         fname = ''

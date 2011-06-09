@@ -11,7 +11,7 @@ multilayers of thin solid films under soft x-ray illumination.
 
 Ref. 'Handbook of ellipsometry' by H.G. Tompkins, E.A. Irene (Springer, 2005)
 
-'polarizer.py' is the workhorse, it should be imported via:
+'polarizer.py' is the workhorse, it can be imported via:
 
 > import polarizer
 
@@ -21,7 +21,7 @@ number of layers is supported.
 
 To define a new layer, use e.g.:
 
-> B4C = polarizer.Layer( 'B4C', complex( 1-0.0283, -0.0031 ), 80e-9 )
+> B4C = polarizer.Layer('B4C', complex(1-0.0283, -0.0031), 80e-9)
 
 This generates a layer with name 'B4C', given complex refractive index, and
 thickness 80nm.  The newly created layer can be accessed and referenced by the
@@ -33,7 +33,7 @@ ambient, B4C, Mo, substrate
 we can now construct the mirror structure and generate a simple visualization:
 (the layer-order goes from top to bottom)
 
-> mirror = polarizer.Structure( [ ambient, B4C, Mo, substrate ] )
+> mirror = polarizer.Structure([ambient, B4C, Mo, substrate])
 > mirror.show()
 
 gives something like:
@@ -51,7 +51,7 @@ gives something like:
 
 If all is well, 
 
-> mirror.fresnel( angle, energy, polarisation ) 
+> mirror.fresnel(angle, energy, polarisation) 
 
 returns the fresnel-reflection-coefficient for the whole structure under given
 angle of incidence (measured from surface-normal!) and photon energy (in eV).
