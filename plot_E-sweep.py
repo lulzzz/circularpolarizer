@@ -20,8 +20,14 @@ mfont = {'default': 'regular',
 plt.rc('font', **font)
 plt.rc('mathtext', **mfont)
 
-mnames = [['B4C', 'Mo'], ['Rh'], ['Ru'], ['TiO', 'Ti'], ['W'], ['Pd']]
-mnames = [['B4C', 'Mo'], ['Ru'], ['TiO', 'Ti']]
+mnames = [
+        ['B4C', 'Mo'], 
+        # ['SiO2', 'Mo'], 
+        # ['BN', 'Mo'], 
+        ['Mo'], 
+        # ['Au'], 
+        ['TiO', 'Ti']
+        ]
 
 # close existing figure, if any
 try:
@@ -45,7 +51,6 @@ for i, name in enumerate(mnames):
     # ax2.plot(x, 90 - np.rad2deg(angle), 'o', label=u'%s' % fname)
 
 ax1.legend(loc='upper left', numpoints=1)
-# ax2.legend(loc='upper left', numpoints=1)
 ax2.set_ylim(0)
 ax1.set_xlabel('energy (eV)')
 ax2.set_xlabel('energy (eV)')
@@ -54,5 +59,5 @@ ax2.set_ylabel(u'beta (deg)')
 # ax2.set_ylabel(u'required grazing angle of incidence (deg)')
 fig.suptitle(u'reflectivity after 4 mirrors for total phaseshift of 90°')
 
-# fig.savefig('E-sweep.pdf')
+fig.savefig('E-sweep.pdf')
 fig.show()
