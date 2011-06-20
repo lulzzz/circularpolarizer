@@ -108,7 +108,9 @@ Methods are
 > straightline.isct(otherline)
 that returns the intersection point of 'straightline' and 'otherline'.
 'otherline' has to be a straighline object too.
-> straightline.mirror(mirrorline) returns intersection point
+> straightline.mirror(mirrorline) 
+returns intersection point and angle corresponding to a reflection of
+straighline on mirrorline.
 Capital letters denote points, small ones stand for direction of straights.
 '''
 class straightline(object):
