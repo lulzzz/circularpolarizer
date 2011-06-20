@@ -110,6 +110,55 @@ class Structure(object):
         return M
     # }}}
     # }}}
+
+
+'''
+this is a class for simple geometric visualization, useful to show the path of
+the lightbeam along the 4 mirrors of the polarizer.  A straightline-object is
+provided, that stores lines in basepoint-direction-form. Direction is given as
+angle.
+Methods are 
+> straightline.isct(otherline)
+that returns the intersection point of 'straightline' and 'otherline'.
+'otherline' has to be a straighline object too.
+> straightline.mirror(mirrorline) returns intersection point
+Capital letters denote points, small ones stand for direction of straights.
+'''
+class straightline(object):
+    def __init__(self, basepoint, angle):
+        self.bp = basepoint
+        self.angle = angle
+        self.d = np.array([np.cos(angle), np.sin(angle)])
+
+    def goto(self, l):
+        return self.bp + l * self.d
+
+    # intersection with other straightline
+    def isct(self, line1):
+        E0x, E0y = self.bp
+        e0x, e0y = self.d
+        E1x, E1y = line1.bp
+        e1x, e1y = line1.d
+        # solution of l for straight==line1
+        l = -(e1x * E1y - e1y * E1x + E0x * e1y - E0y * e1x) /\
+                (e0x * e1y - e0y * e1x)
+        return l
+
+    # reflection on a mirror straight, returns basepoint and angle of
+    # reflected straightline
+    def refl(self, mirror):
+        return self.goto(self.isct(mirror)), 2 * mirror.angle - self.angle
+
+    def mirrorpath(self, mirrorlist):
+        ray = self
+        raypath = [self.bp]
+        for m in mirrorlist:
+            bp, angle = ray.refl(m)
+            ray = straightline(bp, angle)
+            raypath.append(bp)
+        raypath.append(ray.goto(mirrorlist[-1].bp[0] + 50 - bp[0]))
+        return np.array(raypath)
+
 # }}}
 
 # vim: foldmethod=marker

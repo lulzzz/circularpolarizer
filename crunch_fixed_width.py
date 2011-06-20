@@ -69,6 +69,7 @@ def match_interpolated(r_s, r_p, angles, target=np.deg2rad(22.5)):
         interpolated_angle = interpolated_angle[1]
     except IndexError:
         interpolated_angle = interpolated_angle[0]
+    print np.rad2deg(interpolated_angle)
     interpolated_R_s = R_s_fit(interpolated_angle)
     interpolated_R_p = R_p_fit(interpolated_angle)
     return interpolated_R_s, interpolated_R_p, interpolated_angle
@@ -102,10 +103,10 @@ def makename(namelist):
 
 # tried: Au, B4C/Mo, Si3N4/Mo, BN/Mo, Ru, TiO/Ti,
 mnames = [
-        ['SiO2', 'Mo'],
+        ['B4C', 'Mo'],
         # ['Mo'],
         # ['Au'],
-        ['TiO', 'Ti']
+        # ['TiO', 'Ti']
         ]
 thickness = [
         [3, 300],
