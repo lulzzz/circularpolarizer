@@ -34,6 +34,7 @@ class mirror(object):
         r_p = self.fresnel(angle, 'p')
         return fresnel2Rd(r_s, r_p)
 
+
     # {{{ helpers for reflectivity calculation
     # {{{ matrices
     # matrix for ambient layer, p- and s-polarization
@@ -98,7 +99,7 @@ class mirror(object):
     # }}}
 # }}}
 
-# {{{ straighline class
+# {{{ straightline class
 '''
 this is a class for simple geometric visualization, useful to show the path of
 the lightbeam along the 4 mirrors of the polarizer.  A straightline-object is
@@ -110,7 +111,7 @@ that returns the intersection point of 'straightline' and 'otherline'.
 'otherline' has to be a straighline object too.
 > straightline.mirror(mirrorline) 
 returns intersection point and angle corresponding to a reflection of
-straighline on mirrorline.
+straightline on mirrorline.
 Capital letters denote points, small ones stand for direction of straights.
 '''
 class straightline(object):

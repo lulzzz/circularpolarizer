@@ -58,7 +58,7 @@ ax2.set_ylabel(u'phase shift (°)')
 l3 = plt.plot(np.rad2deg(np.pi / 2 - angles),
         np.rad2deg(phase_p - phase_s), 'g-', lw=2)
 
-plt.legend([l1, l2, l3], ['R_s', 'R_p', 'phase shift'], loc='center right')
+plt.legend([l1, l2, l3], ['$R_s$', '$R_p$', '$\Delta\phi$'], loc='center right')
 fig.savefig('test.pdf')
 
 # vim: foldmethod=marker
