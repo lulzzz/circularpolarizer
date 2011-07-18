@@ -73,15 +73,15 @@ omega = np.deg2rad(2)
 geometry = {
         'normal': 30,
         'length': 230,
-        'msize': [50, 50, 50, 50],
-        'focus': [-100, 0],
+        'msize': (50, 50, 50, 50),
+        'focus': (-100, 0),
         'angle': np.deg2rad(21)
         }
 
 # substrate thickness is not needed, but set to -1 to get right visualization
 mirrordef = {
-        'names': ['B4C', 'Mo', 'SiO2'],
-        'thickness': [3, 50, -1],
+        'names': ('B4C', 'Mo', 'SiO2'),
+        'thickness': (3, 50, -1),
         'energy': 60,
         }
 

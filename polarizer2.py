@@ -173,7 +173,7 @@ def cplx_phase(c):
 
 #{{{ get complex refractive index for given material and energy
 def get_index(material, energy):
-    E, n_r, n_i = np.genfromtxt('data/n_%s.dat' % material,
+    E, n_r, n_i = np.genfromtxt('index/n_%s.dat' % material,
         skip_header=2, unpack=True)
     sel = [E == closest(E, energy)]
     N = np.complex(1 - n_r[sel], -n_i[sel])
