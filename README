@@ -1,5 +1,5 @@
 ######################################################################
-# Michael S 260685s<at>gmail<dot>com                                 #
+# Michael Schneider 260685s<at>gmail<dot>com                         #
 #                                                                    #
 # This work is licensed under the Creative Commons Attribution-Share #
 # Alike License: http://creativecommons.org/licenses/by-sa/3.0/      #
@@ -11,49 +11,35 @@ multilayers of thin solid films under soft x-ray illumination.
 
 Ref. 'Handbook of ellipsometry' by H.G. Tompkins, E.A. Irene (Springer, 2005)
 
-'polarizer.py' is the workhorse, it can be imported via:
+'polarizer2.py' is the workhorse, it can be imported via:
 
-> import polarizer
+> import polarizer2
 
-There are 2 classes to build the mirror structure from: Layer and Structure.  A
-Structure consists at least of an ambient and a substrate layer.  An arbitrary
-number of layers is supported.
+The mirror structure is defined by a dictionary with the following keys:
+ 'names'
+ 'index'
+ 'thickness'
+ 'energy'
+with 'index' being optional.
+If there is no list of complex refractive indices given ('index'), the program
+tries to find data-files by the scheme './index/n_$name.dat' and get the
+indexdata from there. (data format as from cxro-database)
 
-To define a new layer, use e.g.:
+Assuming a dictionary like this:
+mirrordef = {
+        'names': ['B4C', 'Mo', 'SiO2'],
+        'thickness': [3, 50, -1],
+        'energy': 60,
+        }
+(note: SiO2 is substrate, thickness is arbitrary but has to be defined)
 
-> B4C = polarizer.Layer('B4C', complex(1-0.0283, -0.0031), 80e-9)
+> m = polarizer2.mirror(mirrordef)
 
-This generates a layer with name 'B4C', given complex refractive index, and
-thickness 80nm.  The newly created layer can be accessed and referenced by the
-variable name B4C.
+creates mirrorobject, and
 
-Assuming we defined some more layers:
-ambient, B4C, Mo, substrate
-(ambient and substrate layer don't need their thickness defined)
-we can now construct the mirror structure and generate a simple visualization:
-(the layer-order goes from top to bottom)
+> R_s, R_p, delta = m.get_Rd(angle)
 
-> mirror = polarizer.Structure([ambient, B4C, Mo, substrate])
-> mirror.show()
-
-gives something like:
-
-    ambient: vacuum
-    N=1.00+0.00i
-   _____________________________________________
-  |    B4C: N=0.91-0.02i d=3nm                  |
-  |_____________________________________________|
-  |    Mo: N=0.78-0.13i d=100nm                 |
-  |_____________________________________________|
-  |    substrate: SiO2                          |
-  |    N=0.95 -0.03i                            |
-  |                                             |
-
-If all is well, 
-
-> mirror.fresnel(angle, energy, polarisation) 
-
-returns the fresnel-reflection-coefficient for the whole structure under given
-angle of incidence (measured from surface-normal!) and photon energy (in eV).
-
+gives reflectivities and phasediff for incidence angle 'angle' (measured from
+surface-normal, only if index-data-files are in place)
+        
 
