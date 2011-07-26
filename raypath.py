@@ -3,12 +3,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
-from scipy import interpolate
+# from scipy import interpolate
 import polarizer2 as pol
 
 # {{{ functions...
 pi = np.pi
 
+# closest-match-finder
+closest = lambda a, val: min(a, key=lambda x: abs(x-val))
 
 def genmirrors(geometry):
     a = geometry['angle']
@@ -54,9 +56,9 @@ def update(val):
     m1.set_xdata(np.rad2deg(geometry['angle']))
     m2.set_xdata(np.rad2deg(geometry['angle'] - omega))
     m3.set_xdata(np.rad2deg(geometry['angle'] + omega))
-    geotext.set_text('R_s = %.2f\nphase = %.2f'\
-            % (R_s_fit(np.pi / 2 - geometry['angle']) ** 4,
-                4 * np.rad2deg(phase_fit(np.pi / 2 - geometry['angle']))))
+    # geotext.set_text('R_s = %.2f\nphase = %.2f'\
+            # % (R_s_fit(np.pi / 2 - geometry['angle']) ** 4,
+                # 4 * np.rad2deg(phase_fit(np.pi / 2 - geometry['angle']))))
 
 # }}}
 
@@ -80,8 +82,8 @@ geometry = {
 
 # substrate thickness is not needed, but set to -1 to get right visualization
 mirrordef = {
-        'names': ('B4C', 'Mo', 'SiO2'),
-        'thickness': (3, 50, -1),
+        'names': ('B4C', 'Mo'),
+        'thickness': (3, 50),
         'energy': 60,
         }
 
@@ -110,17 +112,13 @@ for i, m in enumerate(mirrors2):
 # {{{ polarization and reflectivity
 mirror = pol.mirror(mirrordef)
 angles = np.arange(np.pi / 4, np.pi / 2, .01)
+plotangle = np.rad2deg(np.pi / 2 - angles)
 Rd = np.array([mirror.get_Rd(a) for a in angles])
-# probably overkill to interpolate those...maybe replace with simple
-# closest-match finder
-R_s_fit = interpolate.UnivariateSpline(angles, Rd[:, 0], s=0)
-phase_fit = interpolate.UnivariateSpline(angles, Rd[:, 2], s=0)
 pic2 = fig.add_subplot(212)
 # angle-direction is reversed (grazing incidence vs. normal incidence)
-delta_p = pic2.plot(np.rad2deg(np.pi / 2 - angles), 4 * np.rad2deg(Rd[:, 2]),
-        lw=2, color='darkviolet')
-pic2.set_ylim(ymax=190)
-pic2.axhline(90, ls='-.', color='black')
+DoP = np.sin(4 * Rd[:, 2])
+plot_DoP = pic2.plot(plotangle, DoP, lw=2, color='darkviolet')
+# pic2.axhline(90, ls='-.', color='black')
 pic2.set_xlabel('incidence angle (deg)')
 pic2.set_ylabel('total phasediff (deg)')
 m1 = pic2.axvline(np.rad2deg(geometry['angle']), color='darkgreen', lw=2)
@@ -128,9 +126,8 @@ m2 = pic2.axvline(np.rad2deg(geometry['angle'] - omega), color='red', lw=2)
 m3 = pic2.axvline(np.rad2deg(geometry['angle'] + omega), color='red', lw=2)
 pic3 = pic2.twinx()
 pic3.set_ylabel('total reflectivity')
-R = pic3.plot(np.rad2deg(np.pi / 2 - angles), Rd[:, 0] ** 4,
-        lw=2, color='blue')
-leg = plt.legend((delta_p, R), ('phase', 'reflectivity'), loc='lower right')
+R = pic3.plot(plotangle, Rd[:, 0] ** 4, lw=2, color='blue')
+leg = plt.legend((plot_DoP, R), ('DoP', 'reflectivity'), loc='lower right')
 # }}}
 
 # {{{ info window
@@ -138,9 +135,9 @@ info = plt.axes([.8, .15, .15, .80], axisbg='#bbbbbb')
 info.set_xticks([])
 info.set_yticks([])
 info.text(.05, .30, mirror.info())
-geotext = info.text(.05, .15, 'R_s = %.2f\nphase = %.2f'\
-        % (R_s_fit(np.pi / 2 - geometry['angle']) ** 4,
-            4 * np.rad2deg(phase_fit(np.pi / 2 - geometry['angle']))))
+# geotext = info.text(.05, .15, 'R_s = %.2f\nphase = %.2f'\
+        # % (R_s_fit(np.pi / 2 - geometry['angle']) ** 4,
+             # 4 * np.rad2deg(phase_fit(np.pi / 2 - geometry['angle']))))
 axcolor = 'white'
 # sliders are (interactive) axes...
 axangle = plt.axes([0.10, 0.02, 0.30, 0.03], axisbg=axcolor)

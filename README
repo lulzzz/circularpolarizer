@@ -27,17 +27,20 @@ indexdata from there. (data format as from cxro-database)
 
 Assuming a dictionary like this:
 mirrordef = {
-        'names': ['B4C', 'Mo', 'SiO2'],
-        'thickness': [3, 50, -1],
+        'names': ['B4C', 'Mo'],
+        'thickness': [3, 50],
         'energy': 60,
         }
-(note: SiO2 is substrate, thickness is arbitrary but has to be defined)
+
+Optional keys are 'ambient', expecting a complex refractive index, and
+'substrate', to which a simple name, e.g. 'SiO2' can be passed. If undefined,
+both default to vacuum and SiO2 respectively.
 
 > m = polarizer2.mirror(mirrordef)
 
 creates mirrorobject, and
 
-> R_s, R_p, delta = m.get_Rd(angle)
+> Rd = m.get_Rd(angle)
 
 gives reflectivities and phasediff for incidence angle 'angle' (measured from
 surface-normal, only if index-data-files are in place)

@@ -17,11 +17,17 @@ class mirror(object):
             self.index = mirrordef['index']
         except KeyError:
             print 'No refractive indices given, looking for datafiles.'
-            self.index = [get_index(n, self.E) for n in self.names]
+            self.index = np.array([get_index(n, self.E) for n in self.names])
         try:
             self.ambient = mirrordef['ambient']
         except KeyError:
+            print 'No ambient given, assuming vacuum.'
             self.ambient = np.complex(1,0)
+        try:
+            self.substrate = mirrordef['substrate']
+        except KeyError:
+            print 'No substrate given, assuming SiO2.'
+            self.substrate = get_index('SiO2', self.E)
             # set ambient to vacuum if undefined
 
     # the actual 'worker-function'
@@ -34,10 +40,8 @@ class mirror(object):
         r_p = self.fresnel(angle, 'p')
         return fresnel2Rd(r_s, r_p)
 
-
-    # {{{ helpers for reflectivity calculation
-    # {{{ matrices
-    # matrix for ambient layer, p- and s-polarization
+    # {{{ helper functions
+    # {{{ matrix for ambient layer, p- and s-polarization
     def __M_amb(self, angle, polarisation):
         if polarisation == 'p':
             return .5 * np.matrix([[1, np.cos(angle) / self.ambient],
@@ -45,8 +49,9 @@ class mirror(object):
         elif polarisation == 's':
             return .5 * np.matrix([[1, 1 / (np.cos(angle) * self.ambient)],
                 [1, -1 / (np.cos(angle) * self.ambient)]])
+    # }}}
 
-    # any middle layer
+    # {{{ any middle layer
     def __M_lay(self, d, n, angle_n, l, polarisation):
         b = b_factor(d, n, angle_n, l)
         if polarisation == 'p':
@@ -59,15 +64,17 @@ class mirror(object):
                     [[np.cos(b), self.ii * np.sin(b) / (n * np.cos(angle_n))],\
                     [self.ii * n * np.sin(b) * np.cos(angle_n), np.cos(b)]])
             return M
+    # }}}
 
-    # matrices for an infinite half-space ( =substrate )
+    # {{{ matrices for an infinite half-space ( =substrate )
     def __M_sub(self, angle_n, polarisation):
         if polarisation == 'p':
-            return np.matrix([[np.cos(angle_n) / self.index[-1], 0], [1, 0]])
+            return np.matrix([[np.cos(angle_n) / self.substrate, 0], [1, 0]])
         elif polarisation == 's':
-            return np.matrix([[1 / (np.cos(angle_n) * self.index[-1]), 0], [1, 0]])
+            return np.matrix([[1 / (np.cos(angle_n) * self.substrate), 0], [1, 0]])
+    # }}}
 
-    # M_ges = M_amb * M_lay1 * ... * M_layN * M_sub
+    # {{{ M_ges = M_amb * M_lay1 * ... * M_layN * M_sub
     def __M_ges(self, angle, polarisation):
         # starting with vacuum
         M = self.__M_amb(angle, polarisation)
@@ -75,7 +82,7 @@ class mirror(object):
         n_old = self.ambient
         index = self.index
         # going through the finite-thickness layers
-        for i, layer in enumerate(self.names[:-1]):
+        for i, layer in enumerate(self.names):
             d, n_new = self.thickness[i], index[i]
             l = l_0 / n_new
             angle = refracted(angle, n_old, n_new)
@@ -83,11 +90,12 @@ class mirror(object):
                     angle, l, polarisation)
             n_old = n_new
         # last step: infinite-half-space substrate
-        n_new = index[-1]
-        angle = refracted(angle, n_old, n_new)
+        angle = refracted(angle, n_old, self.substrate)
         M = M * self.__M_sub(angle, polarisation)
         return M
+    # }}}
 
+    # {{{ mirror visualization
     def info(self):
         ds = lambda d: '%dnm' % d if d != -1 else 'substrate'
         info = ''.join(['________\n| %s\n| %s\n' % (n, ds(self.thickness[i] * 1e9))
@@ -97,6 +105,7 @@ class mirror(object):
 
     # }}}
     # }}}
+
 # }}}
 
 # {{{ straightline class
@@ -154,7 +163,7 @@ class straightline(object):
 def fresnel2Rd(r_s, r_p):
     R_s, R_p = abs(r_s) ** 2, abs(r_p) ** 2
     p_s, p_p = cplx_phase(r_s), cplx_phase(r_p)
-    return R_s, R_p, p_p - p_s
+    return [R_s, R_p, p_p - p_s]
 # }}}
 
 # {{{ closest match finder
@@ -179,7 +188,7 @@ def get_index(material, energy):
     N = np.complex(1 - n_r[sel], -n_i[sel])
     if energy - E[sel][0] > .5:
         print '%s: target and actual energy differ by %.2deV!'\
-                % (material, E[sel][0])
+                % (material, energy - E[sel][0])
     return N
 # }}}
 
