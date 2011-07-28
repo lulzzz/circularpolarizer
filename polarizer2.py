@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+######################################################################
+# Michael Schneider 260685s<at>gmail<dot>com                         #
+#                                                                    #
+# This work is licensed under the Creative Commons Attribution-Share #
+# Alike License: http://creativecommons.org/licenses/by-sa/3.0/      #
+#                                                                    #
+######################################################################
 
 import numpy as np
 from scipy.constants import e, c, h
@@ -20,6 +27,7 @@ class mirror(object):
             self.index = np.array([get_index(n, self.E) for n in self.names])
         try:
             self.ambient = mirrordef['ambient']
+        # set ambient to vacuum if undefined
         except KeyError:
             print 'No ambient given, assuming vacuum.'
             self.ambient = np.complex(1,0)
@@ -28,7 +36,6 @@ class mirror(object):
         except KeyError:
             print 'No substrate given, assuming SiO2.'
             self.substrate = get_index('SiO2', self.E)
-            # set ambient to vacuum if undefined
 
     # the actual 'worker-function'
     def fresnel(self, angle, polarisation):

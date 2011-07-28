@@ -23,7 +23,8 @@ The mirror structure is defined by a dictionary with the following keys:
 with 'index' being optional.
 If there is no list of complex refractive indices given ('index'), the program
 tries to find data-files by the scheme './index/n_$name.dat' and get the
-indexdata from there. (data format as from cxro-database)
+indexdata from there. (data format as from cxro-database: 
+        n = 1-delta - i·delta)
 
 Assuming a dictionary like this:
 mirrordef = {
@@ -45,4 +46,8 @@ creates mirrorobject, and
 gives reflectivities and phasediff for incidence angle 'angle' (measured from
 surface-normal, only if index-data-files are in place)
         
-
+Some additional playthings are illustrated by the examples, those rely on the
+great matplotlib:
+figureofmerit.py and compare_index_data.py show basic usage.
+raypath.py shows the situation in the actual quadruple-reflection-polarizer,
+including lightpath, to estimate mirrorsize and performance.
