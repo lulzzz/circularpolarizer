@@ -129,7 +129,7 @@
         abs_R_p = CABS(r_p)**2   ! reflectivity of single mirror
 
         phi(lA) = ATAN(abs_R_s / abs_R_p)
-        R_tot(lA) = (SIN(phi(lA)) * abs_R_s)**4
+        R_tot(lA) = SQRT((SIN(phi(lA)) * abs_R_s)**2 + (COS(phi(lA)) * abs_R_p**2))
         dop(lA) = SIN(4 * (cplx_phase(r_p) - cplx_phase(r_s)))
       END DO
 
